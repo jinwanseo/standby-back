@@ -1,6 +1,8 @@
 package com.standbytogetherbackend.market.controller;
 
 import com.standbytogetherbackend.common.error.CustomErrorMessage;
+import com.standbytogetherbackend.customer.dto.CustomerOutput;
+import com.standbytogetherbackend.customer.entity.Customer;
 import com.standbytogetherbackend.market.dto.CreateMarketInput;
 import com.standbytogetherbackend.market.dto.MarketOutput;
 import com.standbytogetherbackend.market.entity.Market;
@@ -9,7 +11,6 @@ import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -48,10 +49,10 @@ public class MarketControllerImpl implements MarketController {
         );
     }
 
-    @GetMapping("/detail/{id}")
+    @GetMapping("/detail/{marketId}")
     @Override
-    public ResponseEntity<?> getMarketById(@PathVariable Long id) {
-        Market market = this.marketService.findMarketById(id);
+    public ResponseEntity<?> getMarketById(@PathVariable Long marketId) {
+        Market market = this.marketService.findMarketById(marketId);
         return new ResponseEntity<>(Map.of("ok", true, "result", market.toOutput()), HttpStatus.OK);
     }
 
@@ -66,5 +67,18 @@ public class MarketControllerImpl implements MarketController {
         }
         return new ResponseEntity<>(
             Map.of("ok", true, "total", marketList.size(), "result", result), HttpStatus.OK);
+    }
+
+    @GetMapping("/customer/list/{marketId}")
+    @Override
+    public ResponseEntity<?> getCustomerList(@PathVariable Long marketId) {
+        Market marketById = this.marketService.findMarketById(marketId);
+        List<Customer> customers = marketById.getCustomers();
+        List<CustomerOutput> result = new ArrayList<>();
+        for (Customer customer : customers) {
+            result.add(customer.toOutput());
+        }
+        return new ResponseEntity<>(
+            Map.of("ok", true, "total", customers.size(), "result", result), HttpStatus.OK);
     }
 }
