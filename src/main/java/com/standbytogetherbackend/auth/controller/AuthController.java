@@ -5,6 +5,9 @@ import com.standbytogetherbackend.auth.service.AuthService;
 import com.standbytogetherbackend.auth.validator.JoinValidator;
 import com.standbytogetherbackend.common.error.CustomErrorMessage;
 import com.standbytogetherbackend.member.entity.Member;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+@Tag(name = "인증", description = "회원가입, 로그인, 로그아웃")
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -34,6 +38,7 @@ public class AuthController {
     }
 
     @PostMapping("/join")
+    @Operation(summary = "회원가입", description = "회원가입을 진행합니다.")
     public ResponseEntity<?> joinProcess(@Valid @ModelAttribute JoinInput joinInput,
         BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
