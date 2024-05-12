@@ -31,7 +31,6 @@ public class CustomerService {
         if (existsByPhone) {
             throw new IllegalArgumentException("이미 등록된 연락처입니다.");
         }
-
         // 대기열 등록
         return this.customerRepository.save(createCustomerInput.toEntity(market));
     }
@@ -42,10 +41,8 @@ public class CustomerService {
         Market market = getMarketById(marketId);
         // 마켓 내의 대기 고객 리스트 조회
         List<Customer> customers = market.getCustomers();
-
         // 고객 조회
         Customer customer = getCustomerById(customerId);
-
         // 고객의 대기 번호 조회 (index + 1)
         return Map.of("waiting", customers.indexOf(customer) + 1, "total",
             customers.size());

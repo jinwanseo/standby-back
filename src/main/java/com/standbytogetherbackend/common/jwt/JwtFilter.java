@@ -39,6 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        // 토큰에서 정보 추출 후 세션에 저장
         Long id = jwtUtil.getId(token);
         String username = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);

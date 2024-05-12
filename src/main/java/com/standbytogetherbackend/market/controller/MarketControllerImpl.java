@@ -3,11 +3,13 @@ package com.standbytogetherbackend.market.controller;
 import com.standbytogetherbackend.common.error.CustomErrorMessage;
 import com.standbytogetherbackend.customer.dto.CustomerOutput;
 import com.standbytogetherbackend.customer.entity.Customer;
+import com.standbytogetherbackend.market.dto.CallCustomerInput;
 import com.standbytogetherbackend.market.dto.CreateMarketInput;
 import com.standbytogetherbackend.market.dto.MarketOutput;
 import com.standbytogetherbackend.market.entity.Market;
 import com.standbytogetherbackend.market.service.MarketService;
 import jakarta.validation.Valid;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -80,5 +83,14 @@ public class MarketControllerImpl implements MarketController {
         }
         return new ResponseEntity<>(
             Map.of("ok", true, "total", customers.size(), "result", result), HttpStatus.OK);
+    }
+
+    @PostMapping("/customer/call")
+    public ResponseEntity<?> callCustomer(
+        @RequestBody CallCustomerInput callCustomerInput)
+        throws IOException {
+
+        this.marketService.callCustomer(callCustomerInput);
+        return new ResponseEntity<>(Map.of("ok", true), HttpStatus.OK);
     }
 }

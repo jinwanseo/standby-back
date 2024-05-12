@@ -43,7 +43,7 @@ public class Market {
     private Member member;
 
     @OneToMany(mappedBy = "market")
-    @OrderBy("id DESC")
+    @OrderBy("createdAt DESC")
     private List<Customer> customers;
 
     @CreationTimestamp

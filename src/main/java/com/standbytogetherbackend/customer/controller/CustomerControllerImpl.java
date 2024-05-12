@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,20 +32,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class CustomerControllerImpl implements CustomerController {
 
     private final CustomerService customerService;
-    private final CustomErrorMessage errorMessage;
 
     @Override
     @PostMapping("/create")
     public ResponseEntity<?> createCustomer(
-        @Valid @ModelAttribute CreateCustomerInput createCustomerInput,
-        BindingResult bindingResult) {
-
-        if (bindingResult.hasErrors()) {
-            List<Map<String, String>> errorMessages = this.errorMessage.getErrorMessages(
-                bindingResult);
-            return new ResponseEntity<>(Map.of("ok", false, "message", errorMessages),
-                HttpStatus.BAD_REQUEST);
-        }
+        @RequestBody CreateCustomerInput createCustomerInput
+    ) {
 
         // 대기열 등록
         Customer customer = customerService.createCustomer(createCustomerInput);
