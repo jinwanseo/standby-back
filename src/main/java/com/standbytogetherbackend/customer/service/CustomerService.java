@@ -1,10 +1,15 @@
 package com.standbytogetherbackend.customer.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.standbytogetherbackend.customer.dto.CreateCustomerInput;
 import com.standbytogetherbackend.customer.entity.Customer;
 import com.standbytogetherbackend.customer.repository.CustomerRepository;
 import com.standbytogetherbackend.market.entity.Market;
 import com.standbytogetherbackend.market.repository.MarketRepository;
+import com.standbytogetherbackend.sse.service.SSEService;
+import java.io.IOException;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +24,8 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final MarketRepository marketRepository;
+    private final SSEService sseService;
+    private final ObjectMapper objectMapper;
 
     // 대기열 등록
     public Customer createCustomer(CreateCustomerInput createCustomerInput) {
@@ -64,10 +71,42 @@ public class CustomerService {
         return customerById.get();
     }
 
-    public Customer deleteCustomer(Long customerId) {
+    public Customer deleteCustomer(Long customerId) throws IOException {
+        // 삭제 정보 조회
         Customer customerById = this.getCustomerById(customerId);
+
+        // 삭제 정보 저장
+        Long marketKey = customerById.getMarket().getId();
+        Long customerKey = customerById.getId();
+
+        // 마켓 모든 고객 상태 변경 데이터 생성
+        String result = this.customerListForSSEEvent(customerById.getMarket());
+
+        // 삭제
         this.customerRepository.delete(customerById);
+
+        // 삭제 정보 공지 (마켓)
+        this.sseService.sendEvent("market", result, customerKey, marketKey);
+        // 삭제 정보 공지 (유저) -> 공지 필요 없음
+//        this.sseService.sendEvent("customer", "삭제되었습니다.", customerKey, marketKey);
+
+        // 유저 sseEmitter 삭제
+        this.sseService.removeEmitter(customerKey, marketKey);
+
         return customerById;
+    }
+
+    // 마켓 모든 고객 상태 변경 공지 이벤트용 데이터 생성
+    public String customerListForSSEEvent(Market market) throws IOException {
+        // 마켓 모든 고객 상태 변경 공지
+        List<Map<String, Object>> cusList = new ArrayList<>();
+        for (Customer cus : market.getCustomers()) {
+            cusList.add(
+                Map.of("id", cus.getId(), "createdAt",
+                    cus.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+            );
+        }
+        return this.objectMapper.writeValueAsString(cusList);
     }
 
     public List<Customer> getCustomerList(Long marketId) {

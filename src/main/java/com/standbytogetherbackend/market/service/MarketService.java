@@ -11,14 +11,13 @@ import com.standbytogetherbackend.market.repository.MarketRepository;
 import com.standbytogetherbackend.member.dto.MemberDetails;
 import com.standbytogetherbackend.member.entity.Member;
 import com.standbytogetherbackend.member.repository.MemberRepository;
-import com.standbytogetherbackend.sse.service.SseService;
+import com.standbytogetherbackend.sse.service.SSEService;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,7 +31,7 @@ public class MarketService {
     private final MarketRepository marketRepository;
     private final MemberRepository memberRepository;
     private final CustomerRepository customerRepository;
-    private final SseService sseService;
+    private final SSEService sseService;
     private final ObjectMapper objectMapper;
 
 
@@ -99,7 +98,7 @@ public class MarketService {
 
         Customer customer = byCustomerId.get();
         // 마켓에 속한 고객인지 확인
-        if (customer.getMarket().getId() != market.getId()) {
+        if (!customer.getMarket().getId().equals(market.getId())) {
             throw new IllegalArgumentException("해당 마켓에 속한 고객이 아닙니다.");
         }
 
@@ -115,21 +114,29 @@ public class MarketService {
         // DB 반영
         this.customerRepository.save(customer);
 
-        // SSE 이벤트 발생 (고객 호출용)
-        this.sseService.sendEvent("client", "CAlled~!@~!@", customer.getId(),
+        // 고객 상태 변경 공지
+        this.sseService.sendEvent("customer", "호출 되었습니다.", customer.getId(),
             customer.getMarket().getId());
 
+        // 마켓 모든 고객 상태 변경 공지
+        String result = this.customerListForSSEEvent(market);
+
+        // SSE 이벤트 발생 (마켓 호출용)
+        this.sseService.sendEvent("market", result, customer.getId(),
+            customer.getMarket().getId());
+    }
+
+
+    // 마켓 모든 고객 상태 변경 공지 이벤트용 데이터 생성
+    public String customerListForSSEEvent(Market market) throws IOException {
+        // 마켓 모든 고객 상태 변경 공지
         List<Map<String, Object>> cusList = new ArrayList<>();
-        for (Customer cus : customer.getMarket().getCustomers()) {
+        for (Customer cus : market.getCustomers()) {
             cusList.add(
                 Map.of("id", cus.getId(), "createdAt",
                     cus.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
             );
         }
-        String result = this.objectMapper.writeValueAsString(cusList);
-
-        // SSE 이벤트 발생 (마켓 호출용)
-        this.sseService.sendEvent("store", result, customer.getId(),
-            customer.getMarket().getId());
+        return this.objectMapper.writeValueAsString(cusList);
     }
 }

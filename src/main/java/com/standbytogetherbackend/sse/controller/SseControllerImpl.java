@@ -1,6 +1,6 @@
 package com.standbytogetherbackend.sse.controller;
 
-import com.standbytogetherbackend.sse.service.SseService;
+import com.standbytogetherbackend.sse.service.SSEService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class SseControllerImpl implements SseController {
 
-    private final SseService sseService;
+    private final SSEService sseService;
 
     @Override
     @GetMapping(value = "/sse/{customerId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

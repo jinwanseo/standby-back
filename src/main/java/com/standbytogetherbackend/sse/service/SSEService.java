@@ -3,6 +3,7 @@ package com.standbytogetherbackend.sse.service;
 import com.standbytogetherbackend.customer.entity.Customer;
 import com.standbytogetherbackend.customer.repository.CustomerRepository;
 import java.io.IOException;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SseService {
+public class SSEService {
 
     @Value("${spring.sse.expire}")
     private Long DEFAULT_TIMEOUT;
@@ -75,7 +76,7 @@ public class SseService {
             String marketKey = customKeyList[2];
 
             // 클라이언트 이벤트인 경우
-            if (eventName.equals("client")) {
+            if (eventName.equals("customer")) {
                 // 유저 아이디와 마켓 아이디가 일치하는 경우 클라이언트 이벤트 목록에 추가
                 if (customerId.equals(Long.parseLong(customerKey)) &&
                     marketId.equals(Long.parseLong(marketKey))) {
@@ -102,4 +103,17 @@ public class SseService {
     }
 
 
+    public void removeEmitter(Long customerId, Long marketId) {
+        for (String key : emitters.keySet()) {
+            String[] customKeyList = key.split("_");
+            String customerIdStr = customKeyList[1];
+            String marketIdStr = customKeyList[2];
+
+            if (customerId.equals(Long.parseLong(customerIdStr)) &&
+                marketId.equals(Long.parseLong(marketIdStr))) {
+                emitters.remove(key);
+            }
+        }
+    }
+    
 }

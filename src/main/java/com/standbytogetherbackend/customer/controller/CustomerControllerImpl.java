@@ -1,13 +1,12 @@
 package com.standbytogetherbackend.customer.controller;
 
-import com.standbytogetherbackend.common.error.CustomErrorMessage;
 import com.standbytogetherbackend.customer.dto.CreateCustomerInput;
 import com.standbytogetherbackend.customer.dto.CustomerOutput;
 import com.standbytogetherbackend.customer.dto.DeleteCustomerInput;
 import com.standbytogetherbackend.customer.dto.GetCustomerWaitingNumberInput;
 import com.standbytogetherbackend.customer.entity.Customer;
 import com.standbytogetherbackend.customer.service.CustomerService;
-import jakarta.validation.Valid;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -61,7 +59,8 @@ public class CustomerControllerImpl implements CustomerController {
 
     @Override
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteCustomer(DeleteCustomerInput deleteCustomerInput) {
+    public ResponseEntity<?> deleteCustomer(DeleteCustomerInput deleteCustomerInput)
+        throws IOException {
         Customer customer = this.customerService.deleteCustomer(
             deleteCustomerInput.getCustomerId());
         return new ResponseEntity<>(Map.of("ok", true, "result", customer.toOutput()),
@@ -89,5 +88,10 @@ public class CustomerControllerImpl implements CustomerController {
         return new ResponseEntity<>(
             Map.of("ok", true, "waiting", result.get("waiting"), "total", result.get("total")),
             HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> postponeWaiting(Long customerId) {
+        return null;
     }
 }
